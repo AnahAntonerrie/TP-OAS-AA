@@ -1,0 +1,202 @@
+openapi: 3.0.3
+info:
+  title: Produits & Commandes API
+  version: 1.0.0
+  description: >
+    Cette API permet aux clients de consulter des produits et de gérer des commandes.
+    L’authentification est requise pour certaines opérations sensibles.
+
+tags:
+  - name: Products
+    description: Endpoints relatifs à la consultation des produits
+  - name: Orders
+    description: Endpoints de gestion des commandes
+
+paths:
+  /products:
+    get:
+      tags: [Products]
+      summary: Lister les produits disponibles
+      description: Permet de filtrer les produits par mot-clé et de limiter les résultats.
+      parameters:
+        - $ref: '#/components/parameters/q'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Produits disponibles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+              examples:
+                result_ok:
+                  summary: Résultat contenant des produits
+                  value:
+                    - name: "Huile d'olive"
+                      expiration_datetime: "2025-10-01T08:00:00Z"
+                      price: 7.90
+                    - name: "Miel bio"
+                      expiration_datetime: "2025-12-20T14:30:00Z"
+                      price: 6.50
+                result_empty:
+                  summary: Résultat vide
+                  value: []
+
+  /orders:
+    get:
+      tags: [Orders]
+      summary: Obtenir la liste des commandes
+      description: Fournit une liste paginée des commandes passées.
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+      responses:
+        '200':
+          description: Commandes trouvées
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+              examples:
+                some_orders:
+                  summary: Commandes récupérées
+                  value:
+                    - identifier: 2001
+                      customer_name: "Rakoto"
+                      creation_datetime: "2025-08-25T10:15:00Z"
+                      total_amount: 45.30
+                    - identifier: 2002
+                      customer_name: "Rabe"
+                      creation_datetime: "2025-08-26T14:45:00Z"
+                      total_amount: 87.60
+
+    post:
+      tags: [Orders]
+      summary: Créer une commande (authentification requise)
+      security:
+        - BasicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+            examples:
+              sample_order:
+                summary: Exemple de commande à créer
+                value:
+                  identifier: 2003
+                  customer_name: "Randria"
+                  creation_datetime: "2025-08-26T16:00:00Z"
+                  total_amount: 99.90
+      responses:
+        '201':
+          description: Commande créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              examples:
+                order_confirmation:
+                  summary: Commande confirmée
+                  value:
+                    identifier: 2003
+                    customer_name: "Randria"
+                    creation_datetime: "2025-08-26T16:00:00Z"
+                    total_amount: 99.90
+        '401':
+          description: Accès non autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Authentication required"
+
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+
+  parameters:
+    q:
+      name: q
+      in: query
+      required: false
+      description: Rechercher un produit par mot-clé
+      schema:
+        type: string
+        example: "miel"
+
+    limit:
+      name: limit
+      in: query
+      required: false
+      description: Limiter le nombre de résultats retournés
+      schema:
+        type: integer
+        minimum: 1
+        example: 10
+
+    page:
+      name: page
+      in: query
+      required: false
+      description: Numéro de page pour la pagination
+      schema:
+        type: integer
+        minimum: 1
+        example: 1
+
+    size:
+      name: size
+      in: query
+      required: false
+      description: Nombre d’éléments par page
+      schema:
+        type: integer
+        minimum: 1
+        example: 20
+
+  schemas:
+    Product:
+      type: object
+      required: [name, expiration_datetime, price]
+      properties:
+        name:
+          type: string
+          example: "Huile d'olive"
+        expiration_datetime:
+          type: string
+          format: date-time
+          example: "2025-10-01T08:00:00Z"
+        price:
+          type: number
+          format: float
+          example: 7.90
+
+    Order:
+      type: object
+      required: [identifier, customer_name, creation_datetime, total_amount]
+      properties:
+        identifier:
+          type: integer
+          example: 2001
+        customer_name:
+          type: string
+          example: "Rakoto"
+        creation_datetime:
+          type: string
+          format: date-time
+          example: "2025-08-25T10:15:00Z"
+        total_amount:
+          type: number
+          format: float
+          example: 45.30
