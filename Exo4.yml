@@ -1,0 +1,26 @@
+openapi: 3.0.3
+info:
+  title: Recherche de produits
+  version: 1.0.0
+  description: Cette API permet de rechercher des produits via des paramètres communs réutilisables.
+
+paths:
+  /products:
+    get:
+      summary: Obtenir une liste de produits
+      description: Permet de rechercher des produits à l’aide d’un mot-clé et de limiter les résultats.
+      parameters:
+        - $ref: '#/components/parameters/QueryLimit'
+        - $ref: '#/components/parameters/QuerySearch'
+      responses:
+        '200':
+          description: Produits correspondants à la recherche
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+              examples:
+                exemplePlusieursProduits:
+                  summary: Résultat avec deux produits
