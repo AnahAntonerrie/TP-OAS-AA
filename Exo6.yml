@@ -1,0 +1,235 @@
+openapi: 3.0.3
+info:
+  title: Gestion des profils utilisateurs - API
+  version: 1.0.0
+  description: >
+    API structurée pour gérer des profils utilisateurs avec une organisation modulaire des données.
+    Chaque mise à jour cible une partie précise du profil via des routes dédiées.
+
+paths:
+  /users/{id}:
+    get:
+      summary: Récupérer un profil utilisateur complet
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: Profil utilisateur complet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+              examples:
+                exampleUser:
+                  value:
+                    identifier: "123"
+                    first_name: "Anah"
+                    last_name: "Antonerrie"
+                    birthdate: "2007-07-11"
+                    email: "hei.antonerrie@gmail.com"
+                    address_street: "Ambohimanarina"
+                    address_city: "Antananarivo"
+                    address_country: "MLG"
+                    address_postal_code: "101"
+                    needs_newsletter: false
+                    language: "mlg"
+
+  /users:
+    post:
+      summary: Créer une ou plusieurs fiches utilisateurs (sans identifiant)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateUserProfile'
+            examples:
+              newUsers:
+                value:
+                  - first_name: "Anah"
+                    last_name: "Andrianah"
+                    birthdate: "2008-08-03"
+                    email: "andrianahanah31@gmail.com"
+                    address_street: "Hell-ville"
+                    address_city: "Nosy Be"
+                    address_country: "MLG"
+                    address_postal_code: "101"
+                    needs_newsletter: true
+                    language: "mlg"
+      responses:
+        '201':
+          description: Profils créés avec identifiants générés
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProfile'
+
+  /users/{id}/personalInfo:
+    put:
+      summary: Mise à jour des informations personnelles uniquement
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonalInfo'
+            examples:
+              updatePersonalInfo:
+                value:
+                  first_name: "Anah"
+                  last_name: "Antonerrie"
+                  birthdate: "2007-07-11"
+                  email: "antonerrie@gmail.com"
+      responses:
+        '200':
+          description: Informations personnelles mises à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+  /users/{id}/address:
+    put:
+      summary: Mettre à jour uniquement l’adresse utilisateur
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Address'
+            examples:
+              updateAddress:
+                value:
+                  address_street: "Broadway"
+                  address_city: "New York"
+                  address_country: "ENG"
+                  address_postal_code: "1500"
+      responses:
+        '200':
+          description: Adresse mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+  /users/{id}/preferences:
+    put:
+      summary: Mettre à jour les préférences utilisateur uniquement
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Preferences'
+            examples:
+              updatePreferences:
+                value:
+                  needs_newsletter: true
+                  language: "eng"
+      responses:
+        '200':
+          description: Préférences mises à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+components:
+  parameters:
+    userId:
+      name: id
+      in: path
+      description: Identifiant unique de l'utilisateur
+      required: true
+      schema:
+        type: string
+        example: "123"
+
+  schemas:
+    UserProfile:
+      allOf:
+        - $ref: '#/components/schemas/Identifier'
+        - $ref: '#/components/schemas/CreateUserProfile'
+
+    Identifier:
+      type: object
+      properties:
+        identifier:
+          type: string
+          example: "123"
+      required:
+        - identifier
+
+    CreateUserProfile:
+      allOf:
+        - $ref: '#/components/schemas/PersonalInfo'
+        - $ref: '#/components/schemas/Address'
+        - $ref: '#/components/schemas/Preferences'
+
+    PersonalInfo:
+      type: object
+      required:
+        - first_name
+        - last_name
+        - birthdate
+        - email
+      properties:
+        first_name:
+          type: string
+          example: "Anah"
+        last_name:
+          type: string
+          example: "Antonerrie"
+        birthdate:
+          type: string
+          format: date
+          example: "2007-07-11"
+        email:
+          type: string
+          format: email
+          example: "hei.antonerrie@gmail.com"
+
+    Address:
+      type: object
+      required:
+        - address_street
+        - address_city
+        - address_country
+        - address_postal_code
+      properties:
+        address_street:
+          type: string
+          example: "Ambohimanarina"
+        address_city:
+          type: string
+          example: "Antananarivo"
+        address_country:
+          type: string
+          example: "MLG"
+        address_postal_code:
+          type: string
+          example: "101"
+
+    Preferences:
+      type: object
+      required:
+        - needs_newsletter
+        - language
+      properties:
+        needs_newsletter:
+          type: boolean
+          example: false
+        language:
+          type: string
+          enum: [mlg, fr, eng]
+          example: "mlg"
